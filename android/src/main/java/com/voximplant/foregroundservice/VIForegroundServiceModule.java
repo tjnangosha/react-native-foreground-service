@@ -11,8 +11,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.ContextCompat.RECEIVER_EXPORTED;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -112,9 +110,8 @@ public class VIForegroundServiceModule extends ReactContextBaseJavaModule {
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(FOREGROUND_SERVICE_BUTTON_PRESSED);
+        getReactApplicationContext().registerReceiver(foregroundReceiver, filter);
 
-        // add Context.RECEIVER_EXPORTED to allow the receiver to be called from outside the app
-        ContextCompact.registerReceiver(getReactApplicationContext(), foregroundReceiver, filter, Context.RECEIVER_EXPORTED);
 
         if (componentName != null) {
             promise.resolve(null);
