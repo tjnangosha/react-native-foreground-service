@@ -87,14 +87,15 @@ class VIForegroundService {
     /**
      * Start foreground service
      * @param {NotificationConfig} notificationConfig - Notification config
+     * @param {number} foregroundServiceType - The foreground service type as described in your manifest file. Required for API 34 and above.
      * @return Promise
      */
-    async startService(notificationConfig) {
+    async startService(notificationConfig, foregroundServiceType=null) {
         if (isIOS) {
             console.warn("ForegroundService should be used only on Android platfrom.")
             return;
         }
-        return await ForegroundServiceModule.startService(notificationConfig);
+        return await ForegroundServiceModule.startService(notificationConfig, foregroundServiceType);
     }
 
     /**
