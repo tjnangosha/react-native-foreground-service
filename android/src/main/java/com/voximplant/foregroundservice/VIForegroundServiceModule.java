@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import androidx.annotation.Nullable;
+import android.app.ForegroundService;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -76,7 +77,7 @@ public class VIForegroundServiceModule extends ReactContextBaseJavaModule {
             return;
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { // if device is running android 8 and above
             if (!notificationConfig.hasKey("channelId")) {
                 promise.reject(ERROR_INVALID_CONFIG, "VIForegroundService: channelId is required");
                 return;
@@ -110,13 +111,27 @@ public class VIForegroundServiceModule extends ReactContextBaseJavaModule {
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(FOREGROUND_SERVICE_BUTTON_PRESSED);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            getReactApplicationContext().registerReceiver(foregroundReceiver, filter, null, null, Context.RECEIVER_NOT_EXPORTED);
-        } else {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android 14 and above
+            getReactApplicationContext().registerReceiver(
+                foregroundReceiver, 
+                filter,
+                null,
+                null,
+                Context.RECEIVER_NOT_EXPORTED,
+                ForegroundService.TYPE_SPECIAL_USE // Add your foreground service type here
+            );
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // Android 12-13
+            getReactApplicationContext().registerReceiver(
+                foregroundReceiver, 
+                filter, 
+                null, 
+                null, 
+                Context.RECEIVER_NOT_EXPORTED
+            );
+        } else { // Below Android 12
             getReactApplicationContext().registerReceiver(foregroundReceiver, filter);
         }
-
-
 
         if (componentName != null) {
             promise.resolve(null);
