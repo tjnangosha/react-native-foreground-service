@@ -28,7 +28,11 @@ public class VIForegroundService extends Service {
             if (action.equals(Constants.ACTION_FOREGROUND_SERVICE_START)) {
                 if (intent.getExtras() != null && intent.getExtras().containsKey(NOTIFICATION_CONFIG)) {
                     Bundle notificationConfig = intent.getExtras().getBundle(NOTIFICATION_CONFIG);
-                    int foregroundServiceType = intent.getIntExtra("foregroundServiceType", 1); // is 1 the best default value we can have???
+                    int foregroundServiceType = intent.getIntExtra("foregroundServiceType", 1);
+
+                    // get the callback id
+                    String callbackId = intent.getStringExtra("callbackId");
+
                     if (notificationConfig != null && notificationConfig.containsKey("id")) {
                         Notification notification = NotificationHelper.getInstance(getApplicationContext())
                                 .buildNotification(getApplicationContext(), notificationConfig);
@@ -39,6 +43,15 @@ public class VIForegroundService extends Service {
                             startForeground((int)notificationConfig.getDouble("id"), notification);
                         }
                     }
+
+                    // add some more code to handle some more event stuff
+                    ReactInstanceManager reactInstanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
+                    ReactContext reactContext = ReactInstanceManager.getCurrentReactContext();
+                    if (reactContext != null) {
+                        VIForegroundServiceModule.emitEvent(reactContext, "SIGNAL_LOCATION_TRACK_START");
+                    }
+
+                    VIForegroundServiceModule.emitEvent("SIGNAL_LOCATION_TRACK_START");
                 }
             } else if (action.equals(Constants.ACTION_FOREGROUND_SERVICE_STOP)) {
                 stopSelf();

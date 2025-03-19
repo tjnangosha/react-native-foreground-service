@@ -59,7 +59,8 @@ class VIForegroundService {
      */
     constructor() {
         if (isAndroid) {
-            EventEmitter.addListener('VIForegroundServiceButtonPressed', this._VIForegroundServiceButtonPressed.bind(this));
+            // Remove this - i dont think i am using it
+            // EventEmitter.addListener('VIForegroundServiceButtonPressed', this._VIForegroundServiceButtonPressed.bind(this));
         }
     }
 
@@ -112,25 +113,14 @@ class VIForegroundService {
     }
 
     /**
-     * Adds a handler to be invoked when button on notification will be pressed.
+     * Adds a handler to be invoked for different events.
      * The data arguments emitted will be passed to the handler function.
      *
      * @param event - Name of the event to listen to
      * @param handler - Function to invoke when the specified event is emitted
      */
     on(event, handler) {
-        if (isIOS) {
-            console.warn("ForegroundService should be used only on Android platfrom.")
-            return;
-        }
-        if (!handler || !(handler instanceof Function)) {
-            console.warn(`ForegroundService: on: handler is not a Function`);
-            return;
-        }
-        if (!this._listeners.has(event)) {
-          this._listeners.set(event, new Set());
-        }
-        this._listeners.get(event)?.add(handler);
+        EventEmitter.addListener(event, handler);
     }
 
     /**

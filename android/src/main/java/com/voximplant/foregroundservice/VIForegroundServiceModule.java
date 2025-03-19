@@ -13,6 +13,7 @@ import android.os.Build;
 import androidx.annotation.Nullable;
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.app.Activity;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -35,6 +36,8 @@ import static com.voximplant.foregroundservice.Constants.FOREGROUND_SERVICE_BUTT
 import static com.voximplant.foregroundservice.Constants.ERROR_FGS_TYPE_MISSING;
 
 public class VIForegroundServiceModule extends ReactContextBaseJavaModule {
+
+    private static final int REQUEST_NOTIFICATION_PERMISSION = 1001; // You can use any unique integer value
 
     class ForegroundReceiver extends BroadcastReceiver {
         @Override
@@ -126,7 +129,7 @@ public class VIForegroundServiceModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void startService(ReadableMap notificationConfig,  @Nullable Integer foregroundServiceType, Promise promise) {
+    public void startService(ReadableMap notificationConfig,  @Nullable Integer foregroundServiceType, Promise promise) { //TODO; change this method to take a callback id as well
         // ask for notification permissions here for api level 33
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {}
 
@@ -169,10 +172,15 @@ public class VIForegroundServiceModule extends ReactContextBaseJavaModule {
             return;
         }
 
+        // building the intent for the service
         Intent intent = new Intent(getReactApplicationContext(), VIForegroundService.class);
         intent.setAction(Constants.ACTION_FOREGROUND_SERVICE_START);
         intent.putExtra(NOTIFICATION_CONFIG, Arguments.toBundle(notificationConfig));
         intent.putExtra("foregroundServiceType", foregroundServiceType);
+
+        // TODO; do something about this as well
+        // intent.putExtra("callbackId", callbackId);
+
         ComponentName componentName = getReactApplicationContext().startService(intent);
 
         IntentFilter filter = new IntentFilter();
@@ -219,5 +227,10 @@ public class VIForegroundServiceModule extends ReactContextBaseJavaModule {
         reactContext
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                 .emit(eventName, params);
+    }
+
+    // this looks very similar to the function above
+    public static void emitEvent(ReactContext context, String eventName) {
+        context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, null); // dont send any additional data at the moment
     }
 }
