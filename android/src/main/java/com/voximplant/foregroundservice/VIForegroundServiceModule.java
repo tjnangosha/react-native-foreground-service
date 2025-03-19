@@ -11,7 +11,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import androidx.annotation.Nullable;
+import android.Manifest;
+import android.content.pm.PackageManager;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.facebook.react.modules.core.PermissionAwareActivity;
+import com.facebook.react.modules.core.PermissionListener;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -44,6 +51,51 @@ public class VIForegroundServiceModule extends ReactContextBaseJavaModule {
         this.reactContext = reactContext;
     }
 
+    public void requestNotificationPermission(final Promise promise) {
+        Activity currentActivity = getCurrentActivity();
+        if (currentActivity == null) {
+            promise.reject("E_ACTIVITY_DOES_NOT_EXIST", "Activity doesn't exist");
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(currentActivity, Manifest.permission.POST_NOTIFICATIONS) 
+                    == PackageManager.PERMISSION_GRANTED) {
+                // Permission is already granted
+                promise.resolve(true);
+                return;
+            }
+
+            // We need to request the permission
+            PermissionAwareActivity permissionAwareActivity;
+            try {
+                permissionAwareActivity = (PermissionAwareActivity) currentActivity;
+            } catch (ClassCastException e) {
+                promise.reject("E_CANNOT_CAST", "Unable to cast activity to PermissionAwareActivity");
+                return;
+            }
+
+            permissionAwareActivity.requestPermissions(
+                new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                REQUEST_NOTIFICATION_PERMISSION,
+                new PermissionListener() {
+                    @Override
+                    public boolean onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+                        if (requestCode == REQUEST_NOTIFICATION_PERMISSION) {
+                            boolean permissionGranted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                            promise.resolve(permissionGranted);
+                            return true;
+                        }
+                        return false;
+                    }
+                }
+            );
+        } else {
+            // For Android versions less than 13, notification permissions are granted by default
+            promise.resolve(true);
+        }
+    }
+
     @ReactMethod
     public void addListener(String eventName) {
         // Set up any upstream listeners or background tasks as necessary
@@ -60,6 +112,11 @@ public class VIForegroundServiceModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void checkAndRequestNotificationPermission(final Promise promise) {
+        requestNotificationPermission(promise);
+    }
+
+    @ReactMethod
     public void createNotificationChannel(ReadableMap channelConfig, Promise promise) {
         if (channelConfig == null) {
             promise.reject(ERROR_INVALID_CONFIG, "VIForegroundService: Channel config is invalid");
@@ -70,6 +127,9 @@ public class VIForegroundServiceModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void startService(ReadableMap notificationConfig,  @Nullable Integer foregroundServiceType, Promise promise) {
+        // ask for notification permissions here for api level 33
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {}
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             if (foregroundServiceType == null) {
                 promise.reject(ERROR_FGS_TYPE_MISSING, "VIForegroundService: Foreground service type is required");
