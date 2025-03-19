@@ -43,6 +43,7 @@ class NotificationHelper {
             promise.reject(ERROR_INVALID_CONFIG, "VIForegroundService: Channel config is invalid");
             return;
         }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (!channelConfig.hasKey("id")) {
                 promise.reject(ERROR_INVALID_CONFIG, "VIForegroundService: Channel id is required");
@@ -56,7 +57,7 @@ class NotificationHelper {
             String channelName = channelConfig.getString("name");
             String channelDescription = channelConfig.getString("description");
             int channelImportance = channelConfig.hasKey("importance") ?
-                    channelConfig.getInt("importance") : NotificationManager.IMPORTANCE_LOW;
+                    channelConfig.getInt("importance") : NotificationManager.IMPORTANCE_HIGH;
             boolean enableVibration = channelConfig.hasKey("enableVibration") && channelConfig.getBoolean("enableVibration");
             if (channelId == null || channelName == null) {
                 promise.reject(ERROR_INVALID_CONFIG, "VIForegroundService: Channel id or name is not specified");
