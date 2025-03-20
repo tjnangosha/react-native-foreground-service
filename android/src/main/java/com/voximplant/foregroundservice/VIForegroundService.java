@@ -12,6 +12,23 @@ import android.os.IBinder;
 import android.os.Build;
 import android.content.pm.ServiceInfo;
 
+import com.facebook.react.modules.core.PermissionAwareActivity;
+import com.facebook.react.modules.core.PermissionListener;
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContextBaseJavaModule;
+import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.ReactApplication;
+import com.facebook.react.ReactInstanceManager;
+import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
+
 import static com.voximplant.foregroundservice.Constants.NOTIFICATION_CONFIG;
 
 public class VIForegroundService extends Service {
@@ -46,12 +63,10 @@ public class VIForegroundService extends Service {
 
                     // add some more code to handle some more event stuff
                     ReactInstanceManager reactInstanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
-                    ReactContext reactContext = ReactInstanceManager.getCurrentReactContext();
+                    ReactContext reactContext = reactInstanceManager.getCurrentReactContext();
                     if (reactContext != null) {
                         VIForegroundServiceModule.emitEvent(reactContext, "SIGNAL_LOCATION_TRACK_START");
                     }
-
-                    VIForegroundServiceModule.emitEvent("SIGNAL_LOCATION_TRACK_START");
                 }
             } else if (action.equals(Constants.ACTION_FOREGROUND_SERVICE_STOP)) {
                 stopSelf();

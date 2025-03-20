@@ -120,7 +120,11 @@ class VIForegroundService {
      * @param handler - Function to invoke when the specified event is emitted
      */
     on(event, handler) {
-        EventEmitter.addListener(event, handler);
+        if (!this._listeners.has(event)) {
+            this._listeners.set(event, handler);
+            EventEmitter.addListener(event, handler);
+            console.log("registered new handler for event: ", event);
+        }
     }
 
     /**
